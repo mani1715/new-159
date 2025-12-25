@@ -149,9 +149,25 @@ async def startup_event():
                 "role": "super_admin",
                 "permissions": {
                     "canManageAdmins": True,
-                    "canViewPrivateProjects": True,
-                    "canAccessPrivateStorage": True,
-                    "canAccessChat": True
+                    "canManageAbout": True,
+                    "canManagePortfolio": True,
+                    "canManageBlogs": True,
+                    "canManageTestimonials": True,
+                    "canManageDemos": True,
+                    "canViewContacts": True,
+                    "canManageContactPage": True,
+                    "canManageChat": True,
+                    "canManageNewsletter": True,
+                    "canManageBookings": True,
+                    "canManageBookingSettings": True,
+                    "canManagePricing": True,
+                    "canViewAnalytics": True,
+                    "canManageClients": True,
+                    "canManageClientProjects": True,
+                    "canAccessStorage": True,
+                    "canManageNotes": True,
+                    "canManageSettings": True,
+                    "canViewPrivateProjects": True
                 },
                 "created_at": datetime.utcnow().isoformat(),
                 "created_by": "system"
