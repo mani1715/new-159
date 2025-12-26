@@ -28,7 +28,7 @@ export default function ClientLogin() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/client/auth/login`, formData);
+      const response = await api.post('/client/auth/login', formData);
       
       // Store token and client data
       localStorage.setItem('client_token', response.data.access_token);
