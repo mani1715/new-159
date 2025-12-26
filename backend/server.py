@@ -95,10 +95,10 @@ if cors_origins == '*':
     # When credentials are true, we need to specify origins explicitly
     allow_origins = [
         "http://localhost:3000",
-        "https://dashboard-fix-27.preview.emergentagent.com",
-        "https://dashboard-fix-27.preview.emergentagent.com",
-        "https://dashboard-fix-27.preview.emergentagent.com",
-        "https://dashboard-fix-27.preview.emergentagent.com"
+        "https://newcode-portal.preview.emergentagent.com",
+        "https://newcode-portal.preview.emergentagent.com",
+        "https://newcode-portal.preview.emergentagent.com",
+        "https://newcode-portal.preview.emergentagent.com"
     ]
     allow_credentials = True
 else:
