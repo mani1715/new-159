@@ -1,17 +1,34 @@
 #!/usr/bin/env python3
 """
 Script to create admin user in the database
+Uses environment variables for MongoDB connection
 """
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from auth import hash_password
 import uuid
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load environment variables
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 async def create_admin_user():
+    # Get MongoDB URI from environment
+    mongodb_uri = os.environ.get('MONGODB_URI')
+    db_name = os.environ.get('DB_NAME', 'mspn_dev_db')
+    
+    if not mongodb_uri:
+        print("❌ Error: MONGODB_URI environment variable is not set!")
+        print("Please set MONGODB_URI in your .env file")
+        return
+    
     # Connect to MongoDB
-    client = AsyncIOMotorClient('mongodb://localhost:27017')
-    db = client['test_database']
+    client = AsyncIOMotorClient(mongodb_uri)
+    db = client[db_name]
     users_collection = db['users']
     
     # Check if admin already exists
@@ -37,7 +54,7 @@ async def create_admin_user():
     print("✅ Admin user created successfully!")
     print(f"Email: admin@mspn.com")
     print(f"Password: admin123")
-    print("\n⚠️  Please change this password after first login!")
+    print("\n⚠️  IMPORTANT: Change this password after first login!")
     
     client.close()
 
