@@ -30,7 +30,7 @@ export default function ClientDashboard() {
 
   const fetchProjects = async (token) => {
     try {
-      const response = await axios.get(`${API_URL}/client/projects`, {
+      const response = await api.get('/client/projects', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -59,8 +59,8 @@ export default function ClientDashboard() {
   const downloadFile = async (projectId, fileId, filename) => {
     const token = localStorage.getItem('client_token');
     try {
-      const response = await axios.get(
-        `${API_URL}/client/projects/${projectId}/files/${fileId}/download`,
+      const response = await api.get(
+        `/client/projects/${projectId}/files/${fileId}/download`,
         {
           headers: {
             Authorization: `Bearer ${token}`
