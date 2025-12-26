@@ -121,21 +121,37 @@ api_router.include_router(booking_settings_router)
 # Include the main API router in the app
 app.include_router(api_router)
 
-# CORS configuration - Allow specific origins for development
-cors_origins = os.environ.get('CORS_ORIGINS', '*')
-if cors_origins == '*':
-    # When credentials are true, we need to specify origins explicitly
-    allow_origins = [
-        "http://localhost:3000",
-        "https://newcode-dev.preview.emergentagent.com",
-        "https://newcode-dev.preview.emergentagent.com",
-        "https://newcode-dev.preview.emergentagent.com",
-        "https://newcode-dev.preview.emergentagent.com"
-    ]
-    allow_credentials = True
+# =============================================================================
+# CORS CONFIGURATION (Production-Ready)
+# =============================================================================
+# CORS (Cross-Origin Resource Sharing) is configured via environment variable
+# to support deployment where frontend and backend are on different domains
+#
+# DEVELOPMENT: CORS_ORIGINS=http://localhost:3000
+# PRODUCTION:  CORS_ORIGINS=https://your-frontend.vercel.app,https://www.yourdomain.com
+#
+# Multiple origins can be specified by separating them with commas
+# =============================================================================
+
+cors_origins_env = os.environ.get('CORS_ORIGINS', '')
+
+# Parse CORS origins from environment variable
+if cors_origins_env:
+    # Split by comma and strip whitespace
+    allow_origins = [origin.strip() for origin in cors_origins_env.split(',') if origin.strip()]
+    if not allow_origins:
+        # If parsing resulted in empty list, use wildcard (not recommended for production)
+        logger.warning("⚠️  CORS_ORIGINS is set but empty. Using wildcard '*' (not secure for production)")
+        allow_origins = ["*"]
+        allow_credentials = False
+    else:
+        logger.info(f"✅ CORS enabled for origins: {', '.join(allow_origins)}")
+        allow_credentials = True
 else:
-    allow_origins = [origin.strip() for origin in cors_origins.split(',')]
-    allow_credentials = True
+    # Default to wildcard for local development (should be changed for production)
+    logger.warning("⚠️  CORS_ORIGINS not set. Using wildcard '*' (not secure for production)")
+    allow_origins = ["*"]
+    allow_credentials = False
 
 app.add_middleware(
     CORSMiddleware,
