@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import mobile responsive styles */
+@import './mobile-responsive-enhanced.css';
+
 body {
     margin: 0;
     font-family:
