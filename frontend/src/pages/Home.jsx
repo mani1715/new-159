@@ -26,11 +26,11 @@ const Home = () => {
     try {
       // Fetch home content, about content, projects, and testimonials with error handling
       const [homeResponse, aboutResponse, projectsData, testimonialsData] = await Promise.allSettled([
-        axios.get(`${API_URL}/api/content/`).catch(err => {
+        api.get('/content/').catch(err => {
           console.warn('Home content fetch failed, using defaults');
           return { data: null };
         }),
-        axios.get(`${API_URL}/api/about/`).catch(err => {
+        api.get('/about/').catch(err => {
           console.warn('About content fetch failed, will use defaults for stats');
           return { data: null };
         }),
