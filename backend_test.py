@@ -331,7 +331,7 @@ class MSPNAdminAPITester:
         print("\n👥 Testing Admins Management...")
         
         # Get all admins
-        self.run_test("Get All Admins", "GET", "/admins", 200)
+        self.run_test("Get All Admins", "GET", "/admins/list", 200)
 
     def test_settings_management(self):
         """Test Settings management"""
