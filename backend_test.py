@@ -229,8 +229,8 @@ class MSPNAdminAPITester:
         """Test Testimonials CRUD operations"""
         print("\n💬 Testing Testimonials Management...")
         
-        # Get all testimonials
-        success, testimonials = self.run_test("Get All Testimonials", "GET", "/testimonials", 200)
+        # Get all testimonials (admin)
+        success, testimonials = self.run_test("Get All Testimonials", "GET", "/testimonials/admin/all", 200)
         
         # Create new testimonial
         new_testimonial = {
@@ -238,10 +238,12 @@ class MSPNAdminAPITester:
             "company": "Test Company",
             "message": "Great service!",
             "rating": 5,
-            "status": "approved"
+            "status": "approved",
+            "source": "admin_created",
+            "verified": True
         }
         
-        success, created_testimonial = self.run_test("Create Testimonial", "POST", "/testimonials", 201, data=new_testimonial)
+        success, created_testimonial = self.run_test("Create Testimonial", "POST", "/testimonials/admin/create", 201, data=new_testimonial)
         
         if success and 'id' in created_testimonial:
             testimonial_id = created_testimonial['id']
@@ -252,10 +254,10 @@ class MSPNAdminAPITester:
                 "rating": 4
             }
             
-            self.run_test(f"Update Testimonial", "PUT", f"/testimonials/{testimonial_id}", 200, data=updated_testimonial)
+            self.run_test(f"Update Testimonial", "PUT", f"/testimonials/admin/{testimonial_id}", 200, data=updated_testimonial)
             
             # Delete testimonial
-            self.run_test(f"Delete Testimonial", "DELETE", f"/testimonials/{testimonial_id}", 200)
+            self.run_test(f"Delete Testimonial", "DELETE", f"/testimonials/admin/{testimonial_id}", 200)
 
     def test_contacts_management(self):
         """Test Contacts management"""
