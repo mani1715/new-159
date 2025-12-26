@@ -42,6 +42,13 @@ from routes.booking_settings import router as booking_settings_router
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Configure logging early in the application lifecycle
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # =============================================================================
 # RENDER DEPLOYMENT CONFIGURATION
 # =============================================================================
