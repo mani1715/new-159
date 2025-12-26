@@ -92,13 +92,13 @@ class MSPNAdminAPITester:
         success, response = self.run_test(
             "Admin Login",
             "POST",
-            "/auth/login",
+            "/admins/login",
             200,
             data=login_data
         )
         
-        if success and 'access_token' in response:
-            self.token = response['access_token']
+        if success and 'token' in response:
+            self.token = response['token']
             print(f"   🔑 Token obtained: {self.token[:20]}...")
             return True
         return False
