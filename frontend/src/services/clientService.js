@@ -153,6 +153,70 @@ const clientService = {
   updateBudget: async (projectId, budgetData) => {
     const response = await api.put(`/admin/client-projects/${projectId}/budget/`, budgetData);
     return response.data;
+  },
+
+  // ========== CHAT (ADMIN) ==========
+  // Send chat message to client (Admin)
+  sendAdminChatMessage: async (projectId, message) => {
+    const response = await api.post(`/admin/client-projects/${projectId}/chat/`, { message });
+    return response.data;
+  },
+
+  // Get chat messages (Admin)
+  getAdminChatMessages: async (projectId) => {
+    const response = await api.get(`/admin/client-projects/${projectId}/chat/`);
+    return response.data;
+  },
+
+  // Get unread message count (Admin)
+  getUnreadMessageCount: async (projectId) => {
+    const response = await api.get(`/admin/client-projects/${projectId}/unread-count/`);
+    return response.data;
+  },
+
+  // ========== CHAT (CLIENT) ==========
+  // Send chat message to admin (Client)
+  sendClientChatMessage: async (projectId, message, token) => {
+    const response = await api.post(
+      `/client/projects/${projectId}/chat/`,
+      { message },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    return response.data;
+  },
+
+  // Get chat messages (Client)
+  getClientChatMessages: async (projectId, token) => {
+    const response = await api.get(`/client/projects/${projectId}/chat/`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  },
+
+  // Add comment (Client)
+  addClientComment: async (projectId, message, token) => {
+    const response = await api.post(
+      `/client/projects/${projectId}/comments/`,
+      { message },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    return response.data;
+  },
+
+  // Get single project (Admin)
+  getProject: async (projectId) => {
+    const response = await api.get(`/admin/client-projects/${projectId}/`);
+    return response.data;
   }
 };
 
