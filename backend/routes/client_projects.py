@@ -10,6 +10,7 @@ from schemas.client_project import (
 from database import client_projects_collection
 from auth.client_auth import get_current_client
 from models.client_project import ProjectComment, ProjectActivity
+from models.client_project import ChatMessage
 from datetime import datetime
 import os
 
