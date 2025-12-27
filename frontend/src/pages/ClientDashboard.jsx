@@ -35,6 +35,7 @@ export default function ClientDashboard() {
 
     setClient(JSON.parse(clientData));
     fetchProjects(token);
+    fetchMyTestimonials(token);
   }, [navigate]);
 
   const fetchProjects = async (token) => {
