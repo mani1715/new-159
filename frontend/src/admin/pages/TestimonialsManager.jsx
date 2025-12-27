@@ -154,7 +154,8 @@ const TestimonialsManager = () => {
           <p style={{ color: '#6B7280', margin: 0 }}>
             Manage client testimonials - {testimonials.length} total 
             ({testimonials.filter(t => t.status === 'approved').length} approved, 
-            {testimonials.filter(t => t.source === 'customer_submitted').length} from customers)
+            {testimonials.filter(t => t.source === 'client_portal').length} from client portal,
+            {testimonials.filter(t => t.source === 'public_submitted').length} from public)
           </p>
         </div>
         <button onClick={() => handleOpenModal()} className="admin-btn admin-btn-primary">
