@@ -890,3 +890,94 @@ async def delete_project_file(
     )
     
     return {"message": "File deleted successfully"}
+
+# ============================================================================
+# CHAT ENDPOINTS (Admin)
+# ============================================================================
+
+@router.post("/{project_id}/chat", response_model=ChatMessageResponse)
+async def send_chat_message(project_id: str, message_data: ChatMessageCreate, admin = Depends(get_current_admin)):
+    """Send a chat message to client (Admin)"""
+    project_doc = await client_projects_collection.find_one({"id": project_id})
+    if not project_doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    
+    chat_message = ChatMessage(
+        sender_id=admin["id"],
+        sender_name=admin.get("username", "Admin"),
+        sender_type="admin",
+        message=message_data.message,
+        read=False
+    )
+    
+    message_dict = chat_message.model_dump()
+    message_dict['created_at'] = message_dict['created_at'].isoformat()
+    
+    # Add activity log
+    activity = log_activity(
+        project_id,
+        "chat_message",
+        f"{admin.get('username', 'Admin')} sent a chat message",
+        admin["id"],
+        admin.get("username", "Admin")
+    )
+    activity['timestamp'] = activity['timestamp'].isoformat()
+    
+    await client_projects_collection.update_one(
+        {"id": project_id},
+        {
+            "$push": {
+                "chat_messages": message_dict,
+                "activity_log": activity
+            },
+            "$set": {"last_activity_at": datetime.utcnow().isoformat()}
+        }
+    )
+    
+    return ChatMessageResponse(**message_dict)
+
+@router.get("/{project_id}/chat", response_model=List[ChatMessageResponse])
+async def get_chat_messages(project_id: str, admin = Depends(get_current_admin)):
+    """Get all chat messages for a project (Admin)"""
+    project_doc = await client_projects_collection.find_one({"id": project_id})
+    if not project_doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    
+    # Mark admin messages as read
+    chat_messages = project_doc.get('chat_messages', [])
+    updated = False
+    for msg in chat_messages:
+        if msg['sender_type'] == 'client' and not msg.get('read', False):
+            msg['read'] = True
+            updated = True
+    
+    if updated:
+        await client_projects_collection.update_one(
+            {"id": project_id},
+            {"$set": {"chat_messages": chat_messages}}
+        )
+    
+    return [
+        ChatMessageResponse(
+            id=cm['id'],
+            sender_id=cm['sender_id'],
+            sender_name=cm['sender_name'],
+            sender_type=cm['sender_type'],
+            message=cm['message'],
+            read=cm.get('read', False),
+            created_at=cm['created_at'] if isinstance(cm['created_at'], str) else cm['created_at'].isoformat()
+        ) for cm in chat_messages
+    ]
+
+@router.get("/{project_id}/unread-count")
+async def get_unread_count(project_id: str, admin = Depends(get_current_admin)):
+    """Get count of unread messages from client (Admin)"""
+    project_doc = await client_projects_collection.find_one({"id": project_id})
+    if not project_doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    
+    chat_messages = project_doc.get('chat_messages', [])
+    unread_count = sum(1 for msg in chat_messages if msg['sender_type'] == 'client' and not msg.get('read', False))
+    
+    return {"unread_count": unread_count}
+
