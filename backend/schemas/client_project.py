@@ -89,6 +89,21 @@ class CommentResponse(BaseModel):
     message: str
     created_at: str
 
+# Chat Message Schemas
+class ChatMessageCreate(BaseModel):
+    """Schema for creating chat message"""
+    message: str
+
+class ChatMessageResponse(BaseModel):
+    """Schema for chat message response"""
+    id: str
+    sender_id: str
+    sender_name: str
+    sender_type: str  # admin or client
+    message: str
+    read: bool
+    created_at: str
+
 # Activity Log Schema
 class ActivityResponse(BaseModel):
     """Schema for activity log response"""
