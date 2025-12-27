@@ -72,7 +72,7 @@ def convert_project_to_response(project_doc) -> ClientProjectResponse:
                 due_date=str(t['due_date']) if t.get('due_date') else None,
                 completed_at=t.get('completed_at'),
                 milestone_id=t.get('milestone_id'),
-                created_at=t['created_at'] if isinstance(t['created_at'], str) else t['created_at'].isoformat()
+                created_at=t.get('created_at', datetime.utcnow().isoformat()) if isinstance(t.get('created_at'), str) else (t.get('created_at').isoformat() if t.get('created_at') else datetime.utcnow().isoformat())
             ) for t in project_doc.get('tasks', [])
         ],
         files=[
