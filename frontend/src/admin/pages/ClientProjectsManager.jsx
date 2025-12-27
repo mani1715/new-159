@@ -25,7 +25,8 @@ import { toast } from 'sonner';
 import { 
   Plus, Edit, Trash2, Upload, Download, FileText, X, Target, ListChecks, 
   Users, DollarSign, Activity, MessageCircle, Send, Calendar, CheckCircle2,
-  User, Clock
+  User, Clock, Search, Filter, Download as DownloadIcon, BarChart3, 
+  RefreshCw, Copy, TrendingUp, AlertCircle
 } from 'lucide-react';
 import clientService from '../../services/clientService';
 
