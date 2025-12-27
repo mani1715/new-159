@@ -82,6 +82,77 @@ const clientService = {
   deleteProjectFile: async (projectId, fileId) => {
     const response = await api.delete(`/admin/client-projects/${projectId}/files/${fileId}/`);
     return response.data;
+  },
+
+  // ========== MILESTONES ==========
+  // Add milestone to project
+  addMilestone: async (projectId, milestoneData) => {
+    const response = await api.post(`/admin/client-projects/${projectId}/milestones/`, milestoneData);
+    return response.data;
+  },
+
+  // Update milestone
+  updateMilestone: async (projectId, milestoneId, milestoneData) => {
+    const response = await api.put(`/admin/client-projects/${projectId}/milestones/${milestoneId}/`, milestoneData);
+    return response.data;
+  },
+
+  // Delete milestone
+  deleteMilestone: async (projectId, milestoneId) => {
+    const response = await api.delete(`/admin/client-projects/${projectId}/milestones/${milestoneId}/`);
+    return response.data;
+  },
+
+  // ========== TASKS ==========
+  // Add task to project
+  addTask: async (projectId, taskData) => {
+    const response = await api.post(`/admin/client-projects/${projectId}/tasks/`, taskData);
+    return response.data;
+  },
+
+  // Update task
+  updateTask: async (projectId, taskId, taskData) => {
+    const response = await api.put(`/admin/client-projects/${projectId}/tasks/${taskId}/`, taskData);
+    return response.data;
+  },
+
+  // Delete task
+  deleteTask: async (projectId, taskId) => {
+    const response = await api.delete(`/admin/client-projects/${projectId}/tasks/${taskId}/`);
+    return response.data;
+  },
+
+  // ========== COMMENTS ==========
+  // Add comment to project
+  addComment: async (projectId, commentData) => {
+    const response = await api.post(`/admin/client-projects/${projectId}/comments/`, commentData);
+    return response.data;
+  },
+
+  // Delete comment
+  deleteComment: async (projectId, commentId) => {
+    const response = await api.delete(`/admin/client-projects/${projectId}/comments/${commentId}/`);
+    return response.data;
+  },
+
+  // ========== TEAM MEMBERS ==========
+  // Add team member to project
+  addTeamMember: async (projectId, memberData) => {
+    const response = await api.post(`/admin/client-projects/${projectId}/team/`, memberData);
+    return response.data;
+  },
+
+  // Remove team member from project
+  removeTeamMember: async (projectId, adminId) => {
+    const response = await api.delete(`/admin/client-projects/${projectId}/team/${adminId}/`);
+    return response.data;
+  },
+
+  // ========== BUDGET ==========
+  // Update project budget
+  updateBudget: async (projectId, budgetData) => {
+    const response = await api.put(`/admin/client-projects/${projectId}/budget/`, budgetData);
+    return response.data;
   }
 };
 
