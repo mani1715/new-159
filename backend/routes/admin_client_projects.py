@@ -79,9 +79,9 @@ def convert_project_to_response(project_doc) -> ClientProjectResponse:
             ProjectFileResponse(
                 id=f['id'],
                 filename=f['filename'],
-                file_path=f['file_path'],
-                uploaded_at=f['uploaded_at'] if isinstance(f['uploaded_at'], str) else f['uploaded_at'].isoformat(),
-                uploaded_by=f['uploaded_by'],
+                file_path=f.get('file_path', ''),
+                uploaded_at=f.get('uploaded_at', datetime.utcnow().isoformat()) if isinstance(f.get('uploaded_at'), str) else (f.get('uploaded_at').isoformat() if f.get('uploaded_at') else datetime.utcnow().isoformat()),
+                uploaded_by=f.get('uploaded_by', 'system'),
                 file_size=f.get('file_size', 0),
                 file_type=f.get('file_type')
             ) for f in project_doc.get('files', [])
