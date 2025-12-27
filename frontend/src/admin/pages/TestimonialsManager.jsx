@@ -257,11 +257,13 @@ const TestimonialsManager = () => {
                     </td>
                     <td style={{ padding: '16px', textAlign: 'center' }}>
                       <span className={`admin-badge ${
-                        testimonial.source === 'customer_submitted' ? 'info' : 
+                        testimonial.source === 'client_portal' ? 'success' :
+                        testimonial.source === 'public_submitted' ? 'info' : 
                         testimonial.source === 'admin_created' ? 'secondary' :
                         'warning'
                       }`}>
-                        {testimonial.source === 'customer_submitted' ? '👤 Customer' :
+                        {testimonial.source === 'client_portal' ? '✅ Client Portal' :
+                         testimonial.source === 'public_submitted' ? '👤 Public' :
                          testimonial.source === 'admin_created' ? '✏️ Admin' :
                          testimonial.source === 'email' ? '📧 Email' : '📱 Social'}
                       </span>
