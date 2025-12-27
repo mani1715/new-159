@@ -80,7 +80,10 @@ const processQueue = (error, token = null) => {
 // Add token to requests if available
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('adminToken');
+    // Check for both admin and client tokens
+    const token = localStorage.getItem('admin_token') || 
+                  localStorage.getItem('adminToken') || 
+                  localStorage.getItem('client_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
