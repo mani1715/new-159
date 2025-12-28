@@ -1604,6 +1604,9 @@ function BudgetDialog({ open, data, onClose, onSave }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{data ? 'Update Budget' : 'Set Budget'}</DialogTitle>
+          <DialogDescription>
+            {data ? 'Update project budget and payment information' : 'Set the budget and payment terms for this project'}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
