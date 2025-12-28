@@ -3,68 +3,12 @@ import axios from 'axios';
 /**
  * API Configuration for Production Deployment
  * 
- * LOCAL DEVELOPMENT (Kubernetes/Docker):
- *   REACT_APP_BACKEND_URL=/api
- *   Uses relative path, proxied by Kubernetes ingress
- * 
- * PRODUCTION (Vercel + Render):
- *   REACT_APP_BACKEND_URL=https://your-backend-name.onrender.com
- *   Uses absolute URL to Render backend (NOTE: Do NOT include /api suffix)
+ * IMPORTANT: Protocol enforcement happens in request interceptor
+ * to ensure HTTPS is used in production environments
  */
 
-const getApiBaseUrl = () => {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
-  
-  console.log('[API Config] Environment:', process.env.NODE_ENV);
-  console.log('[API Config] REACT_APP_BACKEND_URL:', backendUrl);
-  console.log('[API Config] Current origin:', window.location.origin);
-  console.log('[API Config] Current protocol:', window.location.protocol);
-  
-  // Case 1: No environment variable set - use default relative path
-  if (!backendUrl || backendUrl.trim() === '') {
-    console.log('[API Config] ✅ Using default relative path: /api');
-    return '/api';
-  }
-  
-  // Case 2: Relative path (local development with K8s/Docker)
-  if (backendUrl.startsWith('/')) {
-    // IMPORTANT: In production HTTPS environments, ensure we use absolute URL with HTTPS
-    // to avoid mixed content errors
-    if (window.location.protocol === 'https:') {
-      const absoluteUrl = `${window.location.origin}${backendUrl}`;
-      console.log('[API Config] ✅ Using absolute HTTPS URL:', absoluteUrl);
-      return absoluteUrl;
-    }
-    console.log('[API Config] ✅ Using relative path:', backendUrl);
-    return backendUrl;
-  }
-  
-  // Case 3: Absolute URL (production - Vercel + Render)
-  let finalUrl = backendUrl;
-  
-  // Ensure HTTPS in production - ALWAYS match current page protocol
-  if (window.location.protocol === 'https:') {
-    if (finalUrl.startsWith('http://')) {
-      finalUrl = finalUrl.replace('http://', 'https://');
-      console.log('[API Config] ⚠️ Upgraded to HTTPS:', finalUrl);
-    }
-  }
-  
-  // Add /api suffix if not present
-  if (!finalUrl.endsWith('/api')) {
-    finalUrl = `${finalUrl}/api`;
-    console.log('[API Config] 📝 Added /api suffix:', finalUrl);
-  }
-  
-  console.log('[API Config] ✅ Final API Base URL:', finalUrl);
-  return finalUrl;
-};
-
-const API_BASE_URL = getApiBaseUrl();
-
-// Create axios instance with optimized settings
+// Create axios instance WITHOUT baseURL - we'll set it per request
 const api = axios.create({
-  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -85,9 +29,28 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Add token to requests if available
+// Add token to requests if available AND ensure correct base URL
 api.interceptors.request.use(
   (config) => {
+    // CRITICAL: Build the correct base URL on EVERY request to ensure protocol matches
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || '/api';
+    let baseURL = backendUrl;
+    
+    // If relative path and HTTPS page, convert to absolute HTTPS URL
+    if (backendUrl.startsWith('/')) {
+      if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+        baseURL = `${window.location.origin}${backendUrl}`;
+        console.log('[API Request] Using HTTPS URL:', baseURL);
+      }
+    } else if (backendUrl.startsWith('http://') && typeof window !== 'undefined' && window.location.protocol === 'https:') {
+      // Upgrade HTTP to HTTPS if page is HTTPS
+      baseURL = backendUrl.replace('http://', 'https://');
+      console.log('[API Request] Upgraded to HTTPS:', baseURL);
+    }
+    
+    // Set the base URL for this request
+    config.baseURL = baseURL;
+    
     // Check for both admin and client tokens
     const token = localStorage.getItem('admin_token') || 
                   localStorage.getItem('adminToken') || 
@@ -95,6 +58,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
     return config;
   },
   (error) => Promise.reject(error)
