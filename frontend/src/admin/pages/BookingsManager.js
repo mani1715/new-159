@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, User, Mail, Phone, MessageSquare, CheckCircle, XCircle, Clock as ClockIcon, Filter, Link as LinkIcon } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { getBackendURL } from '../../lib/utils';
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -20,7 +21,7 @@ const BookingsManager = () => {
   const [meetingLink, setMeetingLink] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || '/api';
+  const backendUrl = getBackendURL();
 
   useEffect(() => {
     fetchBookings();
