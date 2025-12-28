@@ -67,6 +67,14 @@ class TaskCreate(BaseModel):
     assigned_to: Optional[str] = None
     due_date: Optional[date] = None
     milestone_id: Optional[str] = None
+    
+    @field_validator('due_date', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        """Convert empty strings to None for date fields"""
+        if v == '' or v is None:
+            return None
+        return v
 
 class TaskUpdate(BaseModel):
     """Schema for updating task"""
