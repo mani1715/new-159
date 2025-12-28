@@ -712,7 +712,10 @@ async def update_budget(project_id: str, budget_data: BudgetUpdate, admin = Depe
     if not project_doc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
     
-    current_budget = project_doc.get('budget', {})
+    # Get current budget, handle None case
+    current_budget = project_doc.get('budget')
+    if current_budget is None:
+        current_budget = {}
     
     if budget_data.total_amount is not None:
         current_budget['total_amount'] = budget_data.total_amount
