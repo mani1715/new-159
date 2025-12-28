@@ -118,7 +118,7 @@ const clientService = {
 
   // Delete task
   deleteTask: async (projectId, taskId) => {
-    const response = await api.delete(`/admin/client-projects/${projectId}/tasks/${taskId}`, taskData);
+    const response = await api.delete(`/admin/client-projects/${projectId}/tasks/${taskId}`);
     return response.data;
   },
 
