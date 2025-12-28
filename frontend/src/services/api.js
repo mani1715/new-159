@@ -49,7 +49,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Add token to requests and ensure HTTPS protocol
+// Add token to requests
 api.interceptors.request.use(
   (config) => {
     // Check for both admin and client tokens
@@ -60,34 +60,18 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Add /api prefix if not already present
-    if (config.url && !config.url.startsWith('/api') && !config.url.startsWith('http')) {
-      config.url = `/api${config.url}`;
-    }
-    
-    // CRITICAL FIX FOR MIXED CONTENT ERROR
-    // If the page is loaded over HTTPS, ensure API requests also use HTTPS
-    if (window.location.protocol === 'https:') {
-      // If config.url is an absolute URL with http://, convert it to https://
-      if (config.url && config.url.startsWith('http://')) {
+    // Double-check that we're not making HTTP requests from HTTPS page
+    if (window.location.protocol === 'https:' && config.url) {
+      // If somehow the URL still has http://, force it to https://
+      if (config.url.startsWith('http://')) {
         config.url = config.url.replace('http://', 'https://');
-        console.log('[API Security] Upgraded HTTP to HTTPS:', config.url);
+        console.log('[API Security] FORCED HTTP→HTTPS:', config.url);
       }
     }
     
-    // Ensure we're using relative URLs, not absolute URLs
-    // If somehow an absolute URL was constructed, convert it back to relative
-    if (config.url && config.url.includes('://')) {
-      const urlObj = new URL(config.url);
-      // If the hostname matches current location, convert to relative URL
-      if (urlObj.hostname === window.location.hostname) {
-        config.url = urlObj.pathname + urlObj.search + urlObj.hash;
-        console.log('[API Security] Converted to relative URL:', config.url);
-      }
-    }
-    
-    // Log for debugging
-    console.log('[API Request]', config.method.toUpperCase(), config.url);
+    // Log for debugging - show the full URL that will be requested
+    const fullUrl = config.baseURL ? `${config.baseURL}${config.url || ''}` : config.url;
+    console.log('[API Request]', config.method.toUpperCase(), fullUrl);
     
     return config;
   },
