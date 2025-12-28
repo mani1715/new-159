@@ -296,7 +296,7 @@ export default function ClientProjectsManager() {
       setMilestoneDialog({ open: false, data: null });
     } catch (error) {
       console.error('Error adding milestone:', error);
-      toast.error('Failed to add milestone');
+      toast.error(getErrorMessage(error, 'Failed to add milestone'));
     }
   };
 
@@ -308,7 +308,7 @@ export default function ClientProjectsManager() {
       setMilestoneDialog({ open: false, data: null });
     } catch (error) {
       console.error('Error updating milestone:', error);
-      toast.error('Failed to update milestone');
+      toast.error(getErrorMessage(error, 'Failed to update milestone'));
     }
   };
 
@@ -321,7 +321,7 @@ export default function ClientProjectsManager() {
       refreshSelectedProject();
     } catch (error) {
       console.error('Error deleting milestone:', error);
-      toast.error('Failed to delete milestone');
+      toast.error(getErrorMessage(error, 'Failed to delete milestone'));
     }
   };
 
@@ -334,7 +334,7 @@ export default function ClientProjectsManager() {
       setTaskDialog({ open: false, data: null });
     } catch (error) {
       console.error('Error adding task:', error);
-      toast.error('Failed to add task');
+      toast.error(getErrorMessage(error, 'Failed to add task'));
     }
   };
 
@@ -346,7 +346,7 @@ export default function ClientProjectsManager() {
       setTaskDialog({ open: false, data: null });
     } catch (error) {
       console.error('Error updating task:', error);
-      toast.error('Failed to update task');
+      toast.error(getErrorMessage(error, 'Failed to update task'));
     }
   };
 
@@ -359,7 +359,7 @@ export default function ClientProjectsManager() {
       refreshSelectedProject();
     } catch (error) {
       console.error('Error deleting task:', error);
-      toast.error('Failed to delete task');
+      toast.error(getErrorMessage(error, 'Failed to delete task'));
     }
   };
 
@@ -372,7 +372,7 @@ export default function ClientProjectsManager() {
       setTeamDialog({ open: false, data: null });
     } catch (error) {
       console.error('Error adding team member:', error);
-      toast.error('Failed to add team member');
+      toast.error(getErrorMessage(error, 'Failed to add team member'));
     }
   };
 
@@ -385,7 +385,7 @@ export default function ClientProjectsManager() {
       refreshSelectedProject();
     } catch (error) {
       console.error('Error removing team member:', error);
-      toast.error('Failed to remove team member');
+      toast.error(getErrorMessage(error, 'Failed to remove team member'));
     }
   };
 
@@ -398,7 +398,7 @@ export default function ClientProjectsManager() {
       setBudgetDialog({ open: false, data: null });
     } catch (error) {
       console.error('Error updating budget:', error);
-      toast.error('Failed to update budget');
+      toast.error(getErrorMessage(error, 'Failed to update budget'));
     }
   };
 
