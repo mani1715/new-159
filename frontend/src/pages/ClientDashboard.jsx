@@ -50,6 +50,11 @@ export default function ClientDashboard() {
   const [submittingTestimonial, setSubmittingTestimonial] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(0);
 
+  // Enhanced features state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+
   useEffect(() => {
     const token = localStorage.getItem('client_token');
     const clientData = localStorage.getItem('client_data');
