@@ -12,16 +12,13 @@ const getBaseURL = () => {
   // Get the configured backend URL from environment
   const backendUrl = process.env.REACT_APP_BACKEND_URL || '/api';
   
-  // If it's a relative URL, construct full URL with current protocol
+  console.log('[API Config] Raw REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
+  console.log('[API Config] Using backend URL:', backendUrl);
+  
+  // CRITICAL FIX: For relative URLs, keep them relative!
+  // This lets the browser use the same protocol/host automatically
   if (backendUrl.startsWith('/')) {
-    if (typeof window !== 'undefined') {
-      // Use the same protocol as the current page
-      const protocol = window.location.protocol;
-      const host = window.location.host;
-      const fullUrl = `${protocol}//${host}${backendUrl}`;
-      console.log('[API Config] Base URL constructed:', fullUrl);
-      return fullUrl;
-    }
+    console.log('[API Config] Using relative URL (browser will use current protocol):', backendUrl);
     return backendUrl;
   }
   
@@ -34,6 +31,7 @@ const getBaseURL = () => {
     }
   }
   
+  console.log('[API Config] Final base URL:', backendUrl);
   return backendUrl;
 };
 
