@@ -180,6 +180,14 @@ class ClientProjectUpdate(BaseModel):
     actual_delivery: Optional[date] = None
     notes: Optional[str] = None
     tags: Optional[List[str]] = None
+    
+    @field_validator('start_date', 'expected_delivery', 'actual_delivery', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        """Convert empty strings to None for date fields"""
+        if v == '' or v is None:
+            return None
+        return v
 
 class ClientProjectResponse(BaseModel):
     """Schema for client project response"""
