@@ -295,6 +295,65 @@ export default function ClientDashboard() {
     return 'bg-gradient-to-r from-green-500 to-emerald-500';
   };
 
+  const getPriorityColor = (priority) => {
+    const colors = {
+      low: 'bg-green-100 text-green-800 border border-green-300',
+      medium: 'bg-blue-100 text-blue-800 border border-blue-300',
+      high: 'bg-orange-100 text-orange-800 border border-orange-300',
+      urgent: 'bg-red-100 text-red-800 border border-red-300'
+    };
+    return colors[priority] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getPriorityIcon = (priority) => {
+    if (priority === 'urgent' || priority === 'high') {
+      return <AlertTriangle className="w-3 h-3" />;
+    }
+    return null;
+  };
+
+  // Filter projects based on search and filters
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (project.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
+    const matchesPriority = priorityFilter === 'all' || project.priority === priorityFilter;
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  // Export project data
+  const handleExportProject = (project) => {
+    const data = {
+      name: project.name,
+      description: project.description,
+      status: getStatusLabel(project.status),
+      priority: project.priority,
+      progress: `${project.progress}%`,
+      start_date: project.start_date || 'N/A',
+      expected_delivery: project.expected_delivery || 'N/A',
+      milestones: project.milestones?.length || 0,
+      tasks: project.tasks?.length || 0,
+      team_members: project.team_members?.length || 0,
+      budget: project.budget ? `${project.budget.currency} ${project.budget.total_amount}` : 'N/A'
+    };
+
+    const csv = [
+      Object.keys(data).join(','),
+      Object.values(data).join(',')
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.name.replace(/\s+/g, '_')}_report.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    toast.success('Project data exported successfully');
+  };
+
   const getMilestoneStatus = (status) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
