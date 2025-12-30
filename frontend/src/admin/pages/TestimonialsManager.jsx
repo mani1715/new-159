@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Star, CheckCircle, XCircle, BadgeCheck, Mail } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Star, CheckCircle, XCircle, BadgeCheck, Mail, ThumbsUp, ThumbsDown, Filter } from 'lucide-react';
 import { getAllTestimonials, createTestimonial, updateTestimonial, deleteTestimonial } from '../../services/testimonialService';
 
 const TestimonialsManager = () => {
   const [testimonials, setTestimonials] = useState([]);
+  const [filteredTestimonials, setFilteredTestimonials] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('all');
   const [formData, setFormData] = useState({
     name: '',
     role: '',
@@ -25,11 +27,21 @@ const TestimonialsManager = () => {
     fetchTestimonials();
   }, []);
 
+  // Filter testimonials when status filter changes
+  useEffect(() => {
+    if (statusFilter === 'all') {
+      setFilteredTestimonials(testimonials);
+    } else {
+      setFilteredTestimonials(testimonials.filter(t => t.status === statusFilter));
+    }
+  }, [statusFilter, testimonials]);
+
   const fetchTestimonials = async () => {
     try {
       setLoading(true);
       const data = await getAllTestimonials();
       setTestimonials(data);
+      setFilteredTestimonials(data);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
       alert('Failed to load testimonials');
@@ -63,7 +75,7 @@ const TestimonialsManager = () => {
         message: '',
         rating: 5,
         image: '',
-        status: 'pending',
+        status: 'approved',
         source: 'admin_created',
         verified: false
       });
@@ -113,14 +125,29 @@ const TestimonialsManager = () => {
     }
   };
 
-  const handleToggleStatus = async (testimonial) => {
-    const newStatus = testimonial.status === 'approved' ? 'pending' : 'approved';
-    try {
-      await updateTestimonial(testimonial.id, { status: newStatus });
-      fetchTestimonials();
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Failed to update status');
+  const handleQuickApprove = async (testimonial) => {
+    if (window.confirm(`Approve testimonial from ${testimonial.name}?`)) {
+      try {
+        await updateTestimonial(testimonial.id, { status: 'approved' });
+        alert('Testimonial approved!');
+        fetchTestimonials();
+      } catch (error) {
+        console.error('Error approving testimonial:', error);
+        alert('Failed to approve testimonial');
+      }
+    }
+  };
+
+  const handleQuickReject = async (testimonial) => {
+    if (window.confirm(`Reject testimonial from ${testimonial.name}? They can edit and resubmit.`)) {
+      try {
+        await updateTestimonial(testimonial.id, { status: 'rejected' });
+        alert('Testimonial rejected');
+        fetchTestimonials();
+      } catch (error) {
+        console.error('Error rejecting testimonial:', error);
+        alert('Failed to reject testimonial');
+      }
     }
   };
 
@@ -143,6 +170,10 @@ const TestimonialsManager = () => {
     );
   }
 
+  const pendingCount = testimonials.filter(t => t.status === 'pending').length;
+  const approvedCount = testimonials.filter(t => t.status === 'approved').length;
+  const rejectedCount = testimonials.filter(t => t.status === 'rejected').length;
+
   return (
     <div>
       {/* Header */}
@@ -153,14 +184,52 @@ const TestimonialsManager = () => {
           </h1>
           <p style={{ color: '#6B7280', margin: 0 }}>
             Manage client testimonials - {testimonials.length} total 
-            ({testimonials.filter(t => t.status === 'approved').length} approved, 
-            {testimonials.filter(t => t.source === 'client_portal').length} from client portal,
-            {testimonials.filter(t => t.source === 'public_submitted').length} from public)
+            ({approvedCount} approved, {pendingCount} pending, {rejectedCount} rejected)
           </p>
         </div>
-        <button onClick={() => handleOpenModal()} className="admin-btn admin-btn-primary">
+        <button onClick={() => handleOpenModal()} className="admin-btn admin-btn-primary" data-testid="add-testimonial-btn">
           <Plus size={18} />
           Add New Testimonial
+        </button>
+      </div>
+
+      {/* Status Filters */}
+      <div style={{ marginBottom: '24px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setStatusFilter('all')}
+          className={`admin-btn ${statusFilter === 'all' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          data-testid="filter-all-btn"
+        >
+          <Filter size={16} />
+          All ({testimonials.length})
+        </button>
+        <button
+          onClick={() => setStatusFilter('pending')}
+          className={`admin-btn ${statusFilter === 'pending' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          data-testid="filter-pending-btn"
+        >
+          <XCircle size={16} />
+          Pending ({pendingCount})
+        </button>
+        <button
+          onClick={() => setStatusFilter('approved')}
+          className={`admin-btn ${statusFilter === 'approved' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          data-testid="filter-approved-btn"
+        >
+          <CheckCircle size={16} />
+          Approved ({approvedCount})
+        </button>
+        <button
+          onClick={() => setStatusFilter('rejected')}
+          className={`admin-btn ${statusFilter === 'rejected' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          data-testid="filter-rejected-btn"
+        >
+          <ThumbsDown size={16} />
+          Rejected ({rejectedCount})
         </button>
       </div>
 
@@ -180,15 +249,17 @@ const TestimonialsManager = () => {
               </tr>
             </thead>
             <tbody>
-              {testimonials.length === 0 ? (
+              {filteredTestimonials.length === 0 ? (
                 <tr>
                   <td colSpan="7" style={{ padding: '48px', textAlign: 'center', color: '#9CA3AF' }}>
-                    No testimonials yet. Create your first testimonial!
+                    {statusFilter === 'all' 
+                      ? 'No testimonials yet. Create your first testimonial!' 
+                      : `No ${statusFilter} testimonials.`}
                   </td>
                 </tr>
               ) : (
-                testimonials.map((testimonial) => (
-                  <tr key={testimonial.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                filteredTestimonials.map((testimonial) => (
+                  <tr key={testimonial.id} style={{ borderBottom: '1px solid #E5E7EB' }} data-testid={`testimonial-row-${testimonial.id}`}>
                     <td style={{ padding: '16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         {testimonial.image ? (
@@ -221,7 +292,7 @@ const TestimonialsManager = () => {
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ fontWeight: '500', color: '#111827' }}>{testimonial.name}</span>
-                            {(testimonial.source === 'client_portal' || testimonial.source === 'public_submitted') && testimonial.verified && (
+                            {(testimonial.source === 'client_portal' || testimonial.verified) && (
                               <BadgeCheck size={14} style={{ color: '#3b82f6' }} title="Verified Customer" />
                             )}
                           </div>
@@ -229,6 +300,11 @@ const TestimonialsManager = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                               <Mail size={12} style={{ color: '#9CA3AF' }} />
                               <span style={{ fontSize: '12px', color: '#6B7280' }}>{testimonial.email}</span>
+                            </div>
+                          )}
+                          {testimonial.project_name && (
+                            <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>
+                              Project: {testimonial.project_name}
                             </div>
                           )}
                         </div>
@@ -270,15 +346,20 @@ const TestimonialsManager = () => {
                       </span>
                     </td>
                     <td style={{ padding: '16px', textAlign: 'center' }}>
-                      <button
-                        onClick={() => handleToggleStatus(testimonial)}
-                        className={`admin-badge ${testimonial.status === 'approved' ? 'success' : 'warning'}`}
-                        style={{ cursor: 'pointer', border: 'none' }}
-                      >
+                      <span className={`admin-badge ${
+                        testimonial.status === 'approved' ? 'success' : 
+                        testimonial.status === 'rejected' ? 'danger' : 
+                        'warning'
+                      }`}>
                         {testimonial.status === 'approved' ? (
                           <>
                             <CheckCircle size={14} />
                             Approved
+                          </>
+                        ) : testimonial.status === 'rejected' ? (
+                          <>
+                            <XCircle size={14} />
+                            Rejected
                           </>
                         ) : (
                           <>
@@ -286,19 +367,43 @@ const TestimonialsManager = () => {
                             Pending
                           </>
                         )}
-                      </button>
+                      </span>
                     </td>
                     <td style={{ padding: '16px', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        {testimonial.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleQuickApprove(testimonial)}
+                              className="admin-btn admin-btn-success admin-btn-sm"
+                              title="Approve"
+                              data-testid={`approve-btn-${testimonial.id}`}
+                            >
+                              <ThumbsUp size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleQuickReject(testimonial)}
+                              className="admin-btn admin-btn-danger admin-btn-sm"
+                              title="Reject"
+                              data-testid={`reject-btn-${testimonial.id}`}
+                            >
+                              <ThumbsDown size={14} />
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => handleOpenModal(testimonial)}
                           className="admin-btn admin-btn-secondary admin-btn-sm"
+                          title="Edit"
+                          data-testid={`edit-btn-${testimonial.id}`}
                         >
                           <Edit size={14} />
                         </button>
                         <button
                           onClick={() => handleDelete(testimonial.id)}
                           className="admin-btn admin-btn-danger admin-btn-sm"
+                          title="Delete"
+                          data-testid={`delete-btn-${testimonial.id}`}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -333,6 +438,7 @@ const TestimonialsManager = () => {
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     required
                     placeholder="John Doe"
+                    data-testid="modal-name-input"
                   />
                 </div>
 
@@ -376,6 +482,7 @@ const TestimonialsManager = () => {
                     required
                     rows={4}
                     placeholder="Write the testimonial message..."
+                    data-testid="modal-message-input"
                   />
                 </div>
 
@@ -393,6 +500,7 @@ const TestimonialsManager = () => {
                           cursor: 'pointer',
                           padding: '4px'
                         }}
+                        data-testid={`modal-rating-${num}`}
                       >
                         <Star
                           size={28}
@@ -422,9 +530,11 @@ const TestimonialsManager = () => {
                   <select
                     value={formData.status}
                     onChange={(e) => handleInputChange('status', e.target.value)}
+                    data-testid="modal-status-select"
                   >
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
                   </select>
                 </div>
 
@@ -435,7 +545,8 @@ const TestimonialsManager = () => {
                       value={formData.source}
                       onChange={(e) => handleInputChange('source', e.target.value)}
                     >
-                      <option value="customer_submitted">Customer Submitted</option>
+                      <option value="client_portal">Client Portal</option>
+                      <option value="public_submitted">Public Submitted</option>
                       <option value="admin_created">Admin Created</option>
                       <option value="email">Email</option>
                       <option value="social_media">Social Media</option>
@@ -463,7 +574,7 @@ const TestimonialsManager = () => {
                 <button type="button" onClick={handleCloseModal} className="admin-btn admin-btn-secondary">
                   Cancel
                 </button>
-                <button type="submit" className="admin-btn admin-btn-primary">
+                <button type="submit" className="admin-btn admin-btn-primary" data-testid="modal-submit-btn">
                   {editingTestimonial ? 'Update Testimonial' : 'Create Testimonial'}
                 </button>
               </div>
