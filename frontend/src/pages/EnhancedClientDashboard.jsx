@@ -855,6 +855,173 @@ export default function EnhancedClientDashboard() {
                               </CardContent>
                             </Card>
                           </TabsContent>
+
+                          {/* Testimonial Tab - Only for Completed Projects */}
+                          {project.status === 'completed' && (
+                            <TabsContent value="testimonial" className="space-y-4">
+                              <Card className="border-2 border-yellow-200">
+                                <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50 border-b">
+                                  <CardTitle className="flex items-center gap-2">
+                                    <Star className="w-5 h-5 text-yellow-600" />
+                                    Share Your Experience
+                                  </CardTitle>
+                                  <CardDescription>
+                                    {testimonialData 
+                                      ? 'Edit your testimonial about this project'
+                                      : 'Help others by sharing your experience working with us!'}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent className="pt-6">
+                                  {loadingTestimonial ? (
+                                    <div className="text-center py-8">
+                                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mx-auto"></div>
+                                      <p className="mt-2 text-sm text-gray-600">Loading...</p>
+                                    </div>
+                                  ) : (
+                                    <form onSubmit={handleSubmitTestimonial} className="space-y-6">
+                                      {/* Status Badge */}
+                                      {testimonialData && (
+                                        <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                                          <span className="text-sm font-medium text-gray-700">Status:</span>
+                                          <Badge 
+                                            className={`${
+                                              testimonialData.status === 'approved' 
+                                                ? 'bg-green-100 text-green-800 border-green-300' 
+                                                : testimonialData.status === 'rejected'
+                                                ? 'bg-red-100 text-red-800 border-red-300'
+                                                : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                                            } border`}
+                                          >
+                                            {testimonialData.status === 'approved' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                                            {testimonialData.status === 'rejected' && <AlertCircle className="w-3 h-3 mr-1" />}
+                                            {testimonialData.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                                            {testimonialData.status.charAt(0).toUpperCase() + testimonialData.status.slice(1)}
+                                          </Badge>
+                                        </div>
+                                      )}
+
+                                      {/* Your Role/Position */}
+                                      <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                          Your Role/Position (Optional)
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={testimonialForm.role}
+                                          onChange={(e) => setTestimonialForm({ ...testimonialForm, role: e.target.value })}
+                                          placeholder="e.g., CEO, Project Manager, Marketing Director"
+                                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                          data-testid="testimonial-role-input"
+                                        />
+                                      </div>
+
+                                      {/* Rating */}
+                                      <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                          Rating <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                          {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                              key={star}
+                                              type="button"
+                                              onClick={() => setTestimonialForm({ ...testimonialForm, rating: star })}
+                                              className="focus:outline-none transform hover:scale-110 transition-transform"
+                                              data-testid={`rating-star-${star}`}
+                                            >
+                                              <Star
+                                                className={`w-8 h-8 ${
+                                                  star <= testimonialForm.rating
+                                                    ? 'fill-yellow-400 text-yellow-400'
+                                                    : 'text-gray-300'
+                                                }`}
+                                              />
+                                            </button>
+                                          ))}
+                                          <span className="ml-2 text-sm font-semibold text-gray-700">
+                                            {testimonialForm.rating} / 5
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {/* Message */}
+                                      <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                          Your Review <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                          value={testimonialForm.message}
+                                          onChange={(e) => setTestimonialForm({ ...testimonialForm, message: e.target.value })}
+                                          placeholder="Share your experience working with us on this project..."
+                                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
+                                          rows="6"
+                                          required
+                                          minLength={10}
+                                          maxLength={1000}
+                                          data-testid="testimonial-message-input"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          {testimonialForm.message.length} / 1000 characters (minimum 10)
+                                        </p>
+                                      </div>
+
+                                      {/* Submit Button */}
+                                      <Button
+                                        type="submit"
+                                        disabled={loadingTestimonial || !testimonialForm.message.trim() || testimonialForm.message.length < 10}
+                                        className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3"
+                                        data-testid="submit-testimonial-btn"
+                                      >
+                                        {loadingTestimonial ? (
+                                          <div className="flex items-center gap-2">
+                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                            Submitting...
+                                          </div>
+                                        ) : testimonialData ? (
+                                          <>
+                                            <CheckCircle2 className="w-5 h-5 mr-2" />
+                                            Update Testimonial
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Star className="w-5 h-5 mr-2" />
+                                            Submit Testimonial
+                                          </>
+                                        )}
+                                      </Button>
+
+                                      {testimonialData && testimonialData.status === 'pending' && (
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                          <p className="text-sm text-blue-800 flex items-center gap-2">
+                                            <AlertCircle className="w-4 h-4" />
+                                            Your testimonial is pending review. You can edit it anytime.
+                                          </p>
+                                        </div>
+                                      )}
+
+                                      {testimonialData && testimonialData.status === 'approved' && (
+                                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                          <p className="text-sm text-green-800 flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            Your testimonial has been approved and is now visible on our website! You can still edit it if needed.
+                                          </p>
+                                        </div>
+                                      )}
+
+                                      {testimonialData && testimonialData.status === 'rejected' && (
+                                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                          <p className="text-sm text-red-800 flex items-center gap-2">
+                                            <AlertCircle className="w-4 h-4" />
+                                            Your testimonial was not approved. Please update it and submit again.
+                                          </p>
+                                        </div>
+                                      )}
+                                    </form>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </TabsContent>
+                          )}
                         </Tabs>
                       </div>
                     )}
