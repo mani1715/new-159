@@ -3,7 +3,7 @@ from typing import List
 from datetime import datetime
 import uuid
 
-from database import testimonials_collection, clients_collection
+from database import testimonials_collection, clients_collection, client_projects_collection
 from schemas.testimonial import TestimonialCreate, TestimonialSubmit, TestimonialUpdate, TestimonialResponse
 from auth.admin_auth import get_current_admin
 from auth.client_auth import get_current_client
@@ -26,6 +26,8 @@ def testimonial_helper(testimonial) -> dict:
         "source": testimonial.get("source", "admin_created"),
         "verified": testimonial.get("verified", False),
         "client_id": testimonial.get("client_id"),
+        "project_id": testimonial.get("project_id"),
+        "project_name": testimonial.get("project_name"),
         "created_at": testimonial["created_at"],
         "updated_at": testimonial["updated_at"]
     }
