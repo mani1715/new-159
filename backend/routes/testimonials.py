@@ -210,14 +210,41 @@ async def delete_testimonial(
 @router.post("/client/submit", response_model=dict, status_code=201)
 async def submit_client_testimonial(
     testimonial: TestimonialSubmit,
+    project_id: str,
     current_client: dict = Depends(get_current_client)
 ):
-    """Endpoint for authenticated clients to submit testimonials"""
+    """Endpoint for authenticated clients to submit testimonials for completed projects"""
     try:
         # Get client information
         client_doc = await clients_collection.find_one({"id": current_client["id"]})
         if not client_doc:
             raise HTTPException(status_code=404, detail="Client not found")
+        
+        # Get project information and verify it belongs to this client
+        project_doc = await client_projects_collection.find_one({
+            "id": project_id,
+            "client_id": current_client["id"]
+        })
+        if not project_doc:
+            raise HTTPException(status_code=404, detail="Project not found or you don't have access to it")
+        
+        # Check if project is completed
+        if project_doc.get("status") != "completed":
+            raise HTTPException(
+                status_code=400, 
+                detail="Testimonials can only be submitted for completed projects"
+            )
+        
+        # Check if testimonial already exists for this project
+        existing_testimonial = await testimonials_collection.find_one({
+            "client_id": current_client["id"],
+            "project_id": project_id
+        })
+        if existing_testimonial:
+            raise HTTPException(
+                status_code=400, 
+                detail="You have already submitted a testimonial for this project. You can edit it instead."
+            )
         
         testimonial_id = str(uuid.uuid4())
         now = datetime.utcnow()
@@ -236,6 +263,8 @@ async def submit_client_testimonial(
             "source": "client_portal",
             "verified": True,  # Verified as from authenticated client
             "client_id": current_client["id"],
+            "project_id": project_id,
+            "project_name": project_doc.get("name", ""),
             "created_at": now,
             "updated_at": now
         }
