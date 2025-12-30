@@ -401,61 +401,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonials Slider Section */}
-      <section className="testimonials-section-premium" data-admin-editable="testimonials-section">
-        <div className="section-container-premium">
-          <div className="section-header-premium">
-            <div className="section-badge" data-admin-editable="testimonials-badge">
-              {content?.testimonials_badge || 'Client Testimonials'}
-            </div>
-            <h2 className="section-title-premium" data-admin-editable="testimonials-title">
-              {content?.testimonials_title || 'What Our Clients Say'}
-            </h2>
-            <p className="section-description-premium" data-admin-editable="testimonials-description">
-              {content?.testimonials_description || 'Trusted by businesses worldwide to deliver exceptional results'}
-            </p>
-          </div>
-
-          <div className="testimonials-grid-premium">
-            {testimonials.map((testimonial, index) => (
-              <Card 
-                key={testimonial.id} 
-                className="testimonial-card-premium"
-                data-admin-editable={`testimonial-${testimonial.id}`}
-                style={{ animationDelay: `${index * 0.15}s` }}
-              >
-                <div className="testimonial-stars" data-admin-editable={`testimonial-rating-${testimonial.id}`}>
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="star-icon" fill="currentColor" />
-                  ))}
-                </div>
-                
-                <p className="testimonial-content-premium" data-admin-editable={`testimonial-content-${testimonial.id}`}>
-                  "{testimonial.content}"
-                </p>
-                
-                <div className="testimonial-author-premium">
-                  <div className="author-avatar">
-                    {testimonial.name.charAt(0)}
-                  </div>
-                  <div className="author-info">
-                    <div className="author-name-premium" data-admin-editable={`testimonial-name-${testimonial.id}`}>
-                      {testimonial.name}
-                    </div>
-                    <div className="author-role-premium" data-admin-editable={`testimonial-role-${testimonial.id}`}>
-                      {testimonial.role}, {testimonial.company}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="testimonial-quote-mark">"</div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
+      {/* Testimonials Section - Dynamic from Database */}
       {clientTestimonials.length > 0 && (
         <section style={{
           padding: '80px 0',
