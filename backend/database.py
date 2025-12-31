@@ -3,69 +3,87 @@ from dotenv import load_dotenv
 import os
 import logging
 from pathlib import Path
+from urllib.parse import quote_plus
 
-# Configure logging
+# ---------------- LOGGING ----------------
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# ---------------- ENV LOADING ----------------
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+load_dotenv(ROOT_DIR / ".env")
 
-# MongoDB connection with production-ready configuration
-# MONGODB_URI is the standard environment variable name used by MongoDB Atlas and Render
-mongodb_uri = os.environ.get('MONGODB_URI')
-db_name = os.environ.get('DB_NAME', 'mspn_dev_db')
+# ---------------- ENV VARIABLES ----------------
+MONGODB_URI = os.getenv("MONGODB_URI")
+DB_NAME = os.getenv("DB_NAME", "mspn_dev_db")
 
-# Validation: Ensure MongoDB URI is provided
-if not mongodb_uri:
-    logger.error("❌ MONGODB_URI environment variable is not set!")
-    raise ValueError("MONGODB_URI environment variable is required. Please set it in your .env file or environment.")
+if not MONGODB_URI:
+    logger.error("❌ MONGODB_URI is missing!")
+    raise ValueError("MONGODB_URI environment variable is required.")
 
-# Log connection attempt (without exposing credentials)
-if mongodb_uri.startswith('mongodb+srv://'):
-    logger.info("🔗 Connecting to MongoDB Atlas (production)...")
-elif mongodb_uri.startswith('mongodb://localhost'):
-    logger.info("🔗 Connecting to local MongoDB (development)...")
-else:
-    logger.info("🔗 Connecting to MongoDB...")
+# ---------------- SAFE URI HANDLING ----------------
+def build_safe_mongo_uri(uri: str) -> str:
+    """
+    Escapes username & password in MongoDB URI safely
+    """
+    if "@@" in uri:
+        raise ValueError("Invalid MongoDB URI")
 
+    if "@" not in uri:
+        return uri  # no credentials
+
+    protocol, rest = uri.split("://", 1)
+    creds, host = rest.split("@", 1)
+
+    if ":" in creds:
+        username, password = creds.split(":", 1)
+        username = quote_plus(username)
+        password = quote_plus(password)
+        return f"{protocol}://{username}:{password}@{host}"
+
+    return uri
+
+SAFE_MONGODB_URI = build_safe_mongo_uri(MONGODB_URI)
+
+# ---------------- CONNECTION ----------------
 try:
-    # Create MongoDB client with connection timeout
+    logger.info("🔗 Connecting to MongoDB...")
     client = AsyncIOMotorClient(
-        mongodb_uri,
-        serverSelectionTimeoutMS=5000,  # 5 second timeout
-        connectTimeoutMS=10000,  # 10 second connection timeout
+        SAFE_MONGODB_URI,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=10000,
     )
-    db = client[db_name]
-    logger.info(f"✅ MongoDB client initialized for database: {db_name}")
+    db = client[DB_NAME]
+    logger.info(f"✅ MongoDB connected | DB: {DB_NAME}")
 except Exception as e:
-    logger.error(f"❌ Failed to initialize MongoDB client: {str(e)}")
+    logger.error(f"❌ MongoDB connection failed: {e}")
     raise
 
-# Collections
-users_collection = db['users']
-page_content_collection = db['page_content']
-services_collection = db['services']
-projects_collection = db['projects']
-contacts_collection = db['contacts']
-settings_collection = db['settings']
-admins_collection = db['admins']
-storage_collection = db['storage']
-skills_collection = db['skills']
-content_collection = db['content']
-notes_collection = db['notes']
-contact_page_collection = db['contact_page']
-conversations_collection = db['conversations']
-blogs_collection = db['blogs']
-testimonials_collection = db['testimonials']
-newsletter_collection = db['newsletter']
-pricing_collection = db['pricing']
-analytics_collection = db['analytics']
-# Client Portal Collections
-clients_collection = db['clients']
-client_projects_collection = db['client_projects']
-# Booking Collections
-bookings_collection = db['bookings']
-booking_settings_collection = db['booking_settings']
+# ---------------- COLLECTIONS ----------------
+users_collection = db["users"]
+page_content_collection = db["page_content"]
+services_collection = db["services"]
+projects_collection = db["projects"]
+contacts_collection = db["contacts"]
+settings_collection = db["settings"]
+admins_collection = db["admins"]
+storage_collection = db["storage"]
+skills_collection = db["skills"]
+content_collection = db["content"]
+notes_collection = db["notes"]
+contact_page_collection = db["contact_page"]
+conversations_collection = db["conversations"]
+blogs_collection = db["blogs"]
+testimonials_collection = db["testimonials"]
+newsletter_collection = db["newsletter"]
+pricing_collection = db["pricing"]
+analytics_collection = db["analytics"]
+clients_collection = db["clients"]
+client_projects_collection = db["client_projects"]
+bookings_collection = db["bookings"]
+booking_settings_collection = db["booking_settings"]
 
+# ---------------- CLEAN SHUTDOWN ----------------
 async def close_db_connection():
+    logger.info("🔌 Closing MongoDB connection...")
     client.close()
