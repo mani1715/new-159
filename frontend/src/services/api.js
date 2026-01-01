@@ -1,160 +1,62 @@
 import axios from 'axios';
 
 /**
- * API SERVICE - KUBERNETES INGRESS COMPATIBLE
- * 
- * For Emergent/Kubernetes deployment:
- * - Uses REACT_APP_BACKEND_URL from .env (defaults to /api)
- * - Kubernetes ingress routes /api/* to backend service on port 8001
- * - Uses relative URLs for proper routing through ingress
+ * API SERVICE – VERCEL + RENDER SAFE
  */
 
-// Get backend URL from environment variable and ensure HTTPS protocol safety
-let BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '/api';
+// Backend URL (must be full URL in production)
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
-// CRITICAL FIX: Force HTTPS if page is served over HTTPS and baseURL has HTTP
-if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-  if (BACKEND_URL.startsWith('http://')) {
-    BACKEND_URL = BACKEND_URL.replace('http://', 'https://');
-    console.warn('[API] Upgraded HTTP baseURL to HTTPS:', BACKEND_URL);
-  }
+if (!BACKEND_URL) {
+  console.error(
+    '❌ REACT_APP_BACKEND_URL is NOT defined. Check Vercel Environment Variables.'
+  );
 }
 
-// Create axios instance with proper baseURL
 const api = axios.create({
   baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15 second default timeout
+  timeout: 15000,
 });
 
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
-// Add token to requests and ENFORCE HTTPS
+// Attach token if exists
 api.interceptors.request.use(
   (config) => {
-    // Check for both admin and client tokens
-    const token = localStorage.getItem('admin_token') || 
-                  localStorage.getItem('adminToken') || 
-                  localStorage.getItem('client_token');
-    
+    const token =
+      localStorage.getItem('admin_token') ||
+      localStorage.getItem('adminToken') ||
+      localStorage.getItem('client_token');
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // CRITICAL FIX: Enforce HTTPS protocol when page is HTTPS
-    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-      // Fix baseURL if it's HTTP
-      if (config.baseURL && config.baseURL.startsWith('http://')) {
-        config.baseURL = config.baseURL.replace('http://', 'https://');
-        console.warn('[API] Upgraded HTTP baseURL to HTTPS in interceptor:', config.baseURL);
-      }
-      
-      // Fix full URL if it was constructed with HTTP
-      if (config.url && config.url.startsWith('http://')) {
-        config.url = config.url.replace('http://', 'https://');
-        console.warn('[API] Upgraded HTTP URL to HTTPS in interceptor:', config.url);
-      }
-    }
-    
-    // Construct the full URL for logging
-    let fullUrl = config.url;
-    if (config.baseURL && !config.url.startsWith('http://') && !config.url.startsWith('https://')) {
-      fullUrl = config.baseURL + (config.url.startsWith('/') ? '' : '/') + config.url;
-    }
-    
-    // Log request for debugging
-    console.log('[API Request]', config.method?.toUpperCase(), fullUrl);
-    console.log('[API] Protocol:', window.location.protocol, '| BaseURL:', config.baseURL);
-    
+
+    console.log(
+      '[API Request]',
+      config.method?.toUpperCase(),
+      `${config.baseURL}${config.url}`
+    );
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Handle response errors with improved logic
+// Handle auth errors
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.clear();
 
-    // Handle 401 Unauthorized
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      const currentPath = window.location.pathname;
-      
-      // If already on login page, don't redirect
-      if (currentPath.includes('/admin/login') || currentPath.includes('/client/login')) {
-        return Promise.reject(error);
+      const path = window.location.pathname;
+      if (path.includes('/client')) {
+        window.location.href = '/client/login';
+      } else {
+        window.location.href = '/admin/login';
       }
-
-      // Check if we have a token
-      const adminToken = localStorage.getItem('admin_token') || localStorage.getItem('adminToken');
-      const clientToken = localStorage.getItem('client_token');
-      
-      if (!adminToken && !clientToken) {
-        // No token, redirect to appropriate login based on current path
-        if (currentPath.includes('/client')) {
-          window.location.href = '/client/login';
-        } else {
-          window.location.href = '/admin/login';
-        }
-        return Promise.reject(error);
-      }
-
-      // If already refreshing, queue the request
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(() => {
-          return api(originalRequest);
-        }).catch(err => {
-          return Promise.reject(err);
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      // Clear tokens and redirect to appropriate login
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_user');
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminUser');
-      localStorage.removeItem('client_token');
-      localStorage.removeItem('client_data');
-      
-      processQueue(error, null);
-      isRefreshing = false;
-      
-      // Small delay to prevent multiple redirects
-      setTimeout(() => {
-        if (currentPath.includes('/client')) {
-          window.location.href = '/client/login';
-        } else {
-          window.location.href = '/admin/login';
-        }
-      }, 100);
-      
-      return Promise.reject(error);
-    }
-
-    // Handle network errors
-    if (!error.response) {
-      console.error('Network error:', error.message);
-      error.message = 'Network error. Please check your connection.';
     }
 
     return Promise.reject(error);
