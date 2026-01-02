@@ -78,6 +78,23 @@ class ProxyHeaderMiddleware(BaseHTTPMiddleware):
 app.add_middleware(ProxyHeaderMiddleware)
 
 # -------------------------------------------------------------------
+# ✅ CORS (FIXED FOR VERCEL + RENDER)
+# -------------------------------------------------------------------
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://new-159.vercel.app"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# -------------------------------------------------------------------
 # Routers
 # -------------------------------------------------------------------
 api_router = APIRouter(prefix="/api")
@@ -121,20 +138,6 @@ api_router.include_router(booking_settings_router)
 app.include_router(api_router)
 
 # -------------------------------------------------------------------
-# CORS
-# -------------------------------------------------------------------
-cors_origins_env = os.environ.get("CORS_ORIGINS", "")
-allow_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()] or ["*"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allow_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# -------------------------------------------------------------------
 # Startup Initialization
 # -------------------------------------------------------------------
 @app.on_event("startup")
@@ -143,7 +146,7 @@ async def startup_event():
         from auto_init import auto_initialize_database
         await auto_initialize_database()
 
-        from database import admins_collection, contact_page_collection
+        from database import admins_collection
         from auth.password import hash_password
         import uuid
         from datetime import datetime
@@ -168,7 +171,7 @@ async def startup_event():
             logger.info("✅ Super admin created successfully!")
             logger.info("   Username: maneesh")
             logger.info("   Password: maneesh123")
-            logger.info("   ⚠️  Change this password after login!")
+            logger.info("   ⚠️ Change this password after login!")
 
         else:
             logger.info("✅ Super admin already exists")
