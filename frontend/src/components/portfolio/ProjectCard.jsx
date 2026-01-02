@@ -6,11 +6,26 @@ import { Button } from '../ui/button';
 import './portfolio-components.css';
 
 const ProjectCard = ({ project }) => {
+  if (!project) return null;
+
+  const {
+    id,
+    title,
+    slug,
+    category,
+    description,
+    image_url,
+    tech_stack = [],
+    featured,
+    live_demo_url,
+    github_url
+  } = project;
+
   return (
-    <Card className="project-card-premium" data-admin-editable={`project-${project.id}`}>
+    <Card className="project-card-premium" data-admin-editable={`project-${id}`}>
       {/* Featured Badge */}
-      {project.featured && (
-        <div className="project-featured-badge" data-admin-editable={`project-featured-${project.id}`}>
+      {featured && (
+        <div className="project-featured-badge">
           <Star className="h-3 w-3" fill="currentColor" />
           <span>Featured</span>
         </div>
@@ -18,24 +33,24 @@ const ProjectCard = ({ project }) => {
 
       {/* Project Image */}
       <div className="project-card-image-wrapper">
-        <img 
-          src={project.image} 
-          alt={project.title}
+        <img
+          src={image_url}
+          alt={title}
           className="project-card-image"
           loading="lazy"
-          data-admin-editable={`project-image-${project.id}`}
         />
-        
+
         {/* Hover Overlay */}
         <div className="project-card-overlay">
           <div className="project-overlay-buttons">
-            <Link to={`/portfolio/${project.slug || project.id}`}>
+            <Link to={`/portfolio/${slug || id}`}>
               <Button className="project-overlay-btn btn-view">
                 <span>View Case Study</span>
               </Button>
             </Link>
-            {(project.liveUrl || project.liveLink) && (
-              <a href={project.liveUrl || project.liveLink} target="_blank" rel="noopener noreferrer">
+
+            {live_demo_url && (
+              <a href={live_demo_url} target="_blank" rel="noopener noreferrer">
                 <Button className="project-overlay-btn btn-demo">
                   <ExternalLink className="h-4 w-4" />
                   <span>Live Demo</span>
@@ -46,47 +61,56 @@ const ProjectCard = ({ project }) => {
         </div>
 
         {/* Category Badge */}
-        <div className="project-category-badge" data-admin-editable={`project-category-${project.id}`}>
-          {project.category}
-        </div>
+        {category && (
+          <div className="project-category-badge">
+            {category}
+          </div>
+        )}
       </div>
 
       {/* Project Info */}
       <div className="project-card-content">
-        <h3 className="project-card-title" data-admin-editable={`project-title-${project.id}`}>
-          {project.title}
+        <h3 className="project-card-title">
+          {title}
         </h3>
-        
-        <p className="project-card-description" data-admin-editable={`project-desc-${project.id}`}>
-          {project.shortDesc || project.description}
+
+        <p className="project-card-description">
+          {description}
         </p>
 
-        {/* Tech Stack Tags */}
-        <div className="project-tech-tags" data-admin-editable={`project-tech-${project.id}`}>
-          {project.technologies.slice(0, 4).map((tech, idx) => (
+        {/* Tech Stack */}
+        <div className="project-tech-tags">
+          {tech_stack.slice(0, 4).map((tech, idx) => (
             <span key={idx} className="tech-tag">
               {tech}
             </span>
           ))}
-          {project.technologies.length > 4 && (
-            <span className="tech-tag tech-tag-more">+{project.technologies.length - 4}</span>
+          {tech_stack.length > 4 && (
+            <span className="tech-tag tech-tag-more">
+              +{tech_stack.length - 4}
+            </span>
           )}
         </div>
 
-        {/* Footer with Links */}
+        {/* Footer */}
         <div className="project-card-footer">
-          <Link to={`/portfolio/${project.slug || project.id}`} className="project-read-more">
+          <Link to={`/portfolio/${slug || id}`} className="project-read-more">
             View Details →
           </Link>
-          {project.githubLink && (
-            <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="project-github-link">
+
+          {github_url && (
+            <a
+              href={github_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="project-github-link"
+            >
               <Github className="h-4 w-4" />
             </a>
           )}
         </div>
       </div>
 
-      {/* Card Gradient Effect */}
       <div className="project-card-gradient"></div>
     </Card>
   );
