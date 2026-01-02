@@ -1,33 +1,31 @@
 import axios from 'axios';
 
 /**
- * API SERVICE – VERCEL + RENDER SAFE
+ * API SERVICE – RENDER + VERCEL SAFE (FIXED)
  */
 
-// Backend URL (must be full URL in production)
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// ⚠️ IMPORTANT: MUST include /api
+const BACKEND_URL =
+  process.env.REACT_APP_BACKEND_URL || 'https://mspn-dev.onrender.com/api';
 
 if (!BACKEND_URL) {
-  console.error(
-    '❌ REACT_APP_BACKEND_URL is NOT defined. Check Vercel Environment Variables.'
-  );
+  console.error('❌ Backend URL not defined');
 }
 
-// Create Axios instance
 const api = axios.create({
   baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15 seconds
+  timeout: 15000,
+  withCredentials: true,
 });
 
-// Attach token if exists
+// Attach token automatically
 api.interceptors.request.use(
   (config) => {
     const token =
       localStorage.getItem('admin_token') ||
-      localStorage.getItem('adminToken') ||
       localStorage.getItem('client_token');
 
     if (token) {
@@ -45,19 +43,15 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle auth errors globally
+// Global error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', error?.response?.data || error.message);
+
     if (error.response?.status === 401) {
       localStorage.clear();
-
-      const path = window.location.pathname;
-      if (path.includes('/client')) {
-        window.location.href = '/client/login';
-      } else {
-        window.location.href = '/admin/login';
-      }
+      window.location.href = '/admin/login';
     }
 
     return Promise.reject(error);
