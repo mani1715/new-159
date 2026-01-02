@@ -5,12 +5,18 @@ import axios from 'axios';
  */
 
 // ⚠️ IMPORTANT: MUST include /api
-const BACKEND_URL =
-  process.env.REACT_APP_BACKEND_URL || 'https://mspn-dev.onrender.com/api';
+// Force the correct backend URL with /api prefix
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL 
+  ? (process.env.REACT_APP_BACKEND_URL.endsWith('/api') 
+      ? process.env.REACT_APP_BACKEND_URL 
+      : `${process.env.REACT_APP_BACKEND_URL}/api`)
+  : 'https://mspn-dev.onrender.com/api';
 
 if (!BACKEND_URL) {
   console.error('❌ Backend URL not defined');
 }
+
+console.log('🔗 API Base URL:', BACKEND_URL);
 
 const api = axios.create({
   baseURL: BACKEND_URL,
