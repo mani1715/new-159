@@ -18,7 +18,7 @@ const ProjectCard = ({ project }) => {
     tech_stack = [],
     featured,
     live_demo_url,
-    github_url
+    github_url,
   } = project;
 
   return (
@@ -31,13 +31,14 @@ const ProjectCard = ({ project }) => {
         </div>
       )}
 
-      {/* Project Image */}
+      {/* Image */}
       <div className="project-card-image-wrapper">
         <img
           src={image_url}
           alt={title}
           className="project-card-image"
           loading="lazy"
+          decoding="async"
         />
 
         {/* Hover Overlay */}
@@ -45,38 +46,33 @@ const ProjectCard = ({ project }) => {
           <div className="project-overlay-buttons">
             <Link to={`/portfolio/${slug || id}`}>
               <Button className="project-overlay-btn btn-view">
-                <span>View Case Study</span>
+                View Case Study
               </Button>
             </Link>
 
             {live_demo_url && (
-              <a href={live_demo_url} target="_blank" rel="noopener noreferrer">
+              <a
+                href={live_demo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Button className="project-overlay-btn btn-demo">
                   <ExternalLink className="h-4 w-4" />
-                  <span>Live Demo</span>
+                  Live Demo
                 </Button>
               </a>
             )}
           </div>
         </div>
 
-        {/* Category Badge */}
-        {category && (
-          <div className="project-category-badge">
-            {category}
-          </div>
-        )}
+        {/* Category */}
+        <div className="project-category-badge">{category}</div>
       </div>
 
-      {/* Project Info */}
+      {/* Content */}
       <div className="project-card-content">
-        <h3 className="project-card-title">
-          {title}
-        </h3>
-
-        <p className="project-card-description">
-          {description}
-        </p>
+        <h3 className="project-card-title">{title}</h3>
+        <p className="project-card-description">{description}</p>
 
         {/* Tech Stack */}
         <div className="project-tech-tags">
@@ -94,7 +90,10 @@ const ProjectCard = ({ project }) => {
 
         {/* Footer */}
         <div className="project-card-footer">
-          <Link to={`/portfolio/${slug || id}`} className="project-read-more">
+          <Link
+            to={`/portfolio/${slug || id}`}
+            className="project-read-more"
+          >
             View Details →
           </Link>
 
