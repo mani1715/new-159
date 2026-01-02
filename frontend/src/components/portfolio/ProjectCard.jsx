@@ -8,71 +8,110 @@ import './portfolio-components.css';
 const ProjectCard = ({ project }) => {
   if (!project) return null;
 
-  const image =
-    project.image_url || project.image || '/placeholder-project.jpg';
-
-  const technologies =
-    project.tech_stack || project.technologies || [];
-
-  const liveDemo =
-    project.live_demo_url || project.liveUrl;
-
-  const github =
-    project.github_url || project.githubLink;
+  const {
+    id,
+    title,
+    slug,
+    category,
+    description,
+    image_url,
+    tech_stack = [],
+    featured,
+    live_demo_url,
+    github_url
+  } = project;
 
   return (
-    <Card className="project-card-premium">
-      {project.featured && (
+    <Card className="project-card-premium" data-admin-editable={`project-${id}`}>
+      {/* Featured Badge */}
+      {featured && (
         <div className="project-featured-badge">
-          <Star size={14} fill="currentColor" />
-          Featured
+          <Star className="h-3 w-3" fill="currentColor" />
+          <span>Featured</span>
         </div>
       )}
 
+      {/* Project Image */}
       <div className="project-card-image-wrapper">
         <img
-          src={image}
-          alt={project.title}
+          src={image_url}
+          alt={title}
+          className="project-card-image"
           loading="lazy"
-          onError={(e) => {
-            e.currentTarget.src = '/placeholder-project.jpg';
-          }}
         />
 
+        {/* Hover Overlay */}
         <div className="project-card-overlay">
-          <Link to={`/portfolio/${project.slug || project.id}`}>
-            <Button>View Details</Button>
+          <div className="project-overlay-buttons">
+            <Link to={`/portfolio/${slug || id}`}>
+              <Button className="project-overlay-btn btn-view">
+                <span>View Case Study</span>
+              </Button>
+            </Link>
+
+            {live_demo_url && (
+              <a href={live_demo_url} target="_blank" rel="noopener noreferrer">
+                <Button className="project-overlay-btn btn-demo">
+                  <ExternalLink className="h-4 w-4" />
+                  <span>Live Demo</span>
+                </Button>
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Category Badge */}
+        {category && (
+          <div className="project-category-badge">
+            {category}
+          </div>
+        )}
+      </div>
+
+      {/* Project Info */}
+      <div className="project-card-content">
+        <h3 className="project-card-title">
+          {title}
+        </h3>
+
+        <p className="project-card-description">
+          {description}
+        </p>
+
+        {/* Tech Stack */}
+        <div className="project-tech-tags">
+          {tech_stack.slice(0, 4).map((tech, idx) => (
+            <span key={idx} className="tech-tag">
+              {tech}
+            </span>
+          ))}
+          {tech_stack.length > 4 && (
+            <span className="tech-tag tech-tag-more">
+              +{tech_stack.length - 4}
+            </span>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="project-card-footer">
+          <Link to={`/portfolio/${slug || id}`} className="project-read-more">
+            View Details →
           </Link>
 
-          {liveDemo && (
-            <a href={liveDemo} target="_blank" rel="noreferrer">
-              <Button>
-                <ExternalLink size={16} />
-                Live Demo
-              </Button>
+          {github_url && (
+            <a
+              href={github_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="project-github-link"
+            >
+              <Github className="h-4 w-4" />
             </a>
           )}
         </div>
       </div>
 
-      <div className="project-card-content">
-        <h3>{project.title}</h3>
-        <p>{project.description}</p>
-
-        <div className="project-tech-tags">
-          {technologies.map((tech, i) => (
-            <span key={i} className="tech-tag">
-              {tech}
-            </span>
-          ))}
-        </div>
-
-        {github && (
-          <a href={github} target="_blank" rel="noreferrer">
-            <Github size={18} />
-          </a>
-        )}
-      </div>
+      <div className="project-card-gradient"></div>
     </Card>
   );
 };
