@@ -2,6 +2,7 @@ import axios from 'axios';
 
 /**
  * API SERVICE – RENDER + VERCEL SAFE (FIXED)
+ * With improved timeout handling and retry logic
  */
 
 // ⚠️ IMPORTANT: MUST include /api
@@ -18,12 +19,15 @@ if (!BACKEND_URL) {
 
 console.log('🔗 API Base URL:', BACKEND_URL);
 
+// Increased timeout for cold starts on Render (free tier can take 30-50 seconds to wake up)
+const API_TIMEOUT = process.env.NODE_ENV === 'development' ? 15000 : 60000;
+
 const api = axios.create({
   baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: API_TIMEOUT,
   withCredentials: true,
 });
 
